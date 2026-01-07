@@ -85,6 +85,21 @@ export const api = {
       },
     },
   },
+  address: {
+    search: {
+      method: 'GET' as const,
+      path: '/api/address/search',
+      input: z.object({
+        q: z.string(),
+      }),
+      responses: {
+        200: z.array(z.object({
+          label: z.string(),
+          value: z.string(),
+        })),
+      },
+    },
+  },
 };
 
 // ============================================

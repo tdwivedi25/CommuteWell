@@ -129,6 +129,23 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
+  // === Address Search Endpoint (Mocked) ===
+  app.get(api.addresses.search.path, async (req, res) => {
+    const query = req.query.q as string;
+    if (!query) return res.json([]);
+    
+    // Mock address list based on query
+    const mockAddresses = [
+      { display_name: "123 Lathrop Way, Lathrop, CA 95330" },
+      { display_name: "456 Bay Area Blvd, San Francisco, CA 94105" },
+      { display_name: "789 Commuter Lane, Tracy, CA 95376" },
+      { display_name: "101 Silicon Valley Rd, San Jose, CA 95112" },
+      { display_name: "202 Altamont Pass, Livermore, CA 94551" },
+    ].filter(a => a.display_name.toLowerCase().includes(query.toLowerCase()));
+
+    res.json(mockAddresses);
+  });
+
   // === Seed Data ===
   const existingRoutes = await storage.getRoutes();
   if (existingRoutes.length === 0) {
