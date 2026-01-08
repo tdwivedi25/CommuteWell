@@ -130,7 +130,7 @@ export async function registerRoutes(
   });
 
   // === Address Search Endpoint (Mocked) ===
-  app.get(api.addresses.search.path, async (req, res) => {
+  app.get(api.address.search.path, async (req, res) => {
     const query = req.query.q as string;
     if (!query) return res.json([]);
     

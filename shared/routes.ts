@@ -94,8 +94,7 @@ export const api = {
       }),
       responses: {
         200: z.array(z.object({
-          label: z.string(),
-          value: z.string(),
+          display_name: z.string(),
         })),
       },
     },
