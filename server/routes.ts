@@ -5,11 +5,17 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import OpenAI from "openai";
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-});
+// Initialize OpenAI client with graceful fallback when no key is provided
+const _routesAiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+let openai: any;
+if (_routesAiKey) {
+  openai = new OpenAI({ apiKey: _routesAiKey, baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL });
+} else {
+  openai = {
+    chat: { completions: { create: async () => ({ choices: [{ message: { content: "AI key not configured" } }] }) } },
+    images: { generate: async () => ({ data: [{ b64_json: null }] }) },
+  } as any;
+}
 
 export async function registerRoutes(
   httpServer: Server,
@@ -24,7 +30,10 @@ export async function registerRoutes(
 
   app.post(api.routes.create.path, async (req, res) => {
     try {
-      const input = api.routes.create.input.parse(req.body);
+      // Ensure transportModes has a default so older clients or the new UI
+      // (which no longer provides transport modes) still validate.
+      const bodyWithDefaults = { ...(req.body || {}), transportModes: (req.body && req.body.transportModes) ? req.body.transportModes : ["drive"] };
+      const input = api.routes.create.input.parse(bodyWithDefaults);
       const route = await storage.createRoute(input);
       res.status(201).json(route);
     } catch (err) {
@@ -129,12 +138,35 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
-  // === Address Search Endpoint (Mocked) ===
+  // === Address Search Endpoint ===
   app.get(api.address.search.path, async (req, res) => {
-    const query = req.query.q as string;
+    const query = (req.query.q as string) || "";
     if (!query) return res.json([]);
-    
-    // Mock address list based on query
+
+    const ghKey = process.env.GRAPHOPPER_API_KEY;
+    if (ghKey) {
+      try {
+        const url = `https://graphhopper.com/api/1/geocode?q=${encodeURIComponent(query)}&locale=en&limit=6&key=${encodeURIComponent(ghKey)}`;
+        const r = await fetch(url);
+        if (r.ok) {
+          const json = await r.json();
+          const hits = json.hits || [];
+          const results = hits.map((h: any) => {
+            const parts = [h.name, h.street, h.city, h.postcode, h.country].filter(Boolean);
+            return {
+              display_name: parts.join(", ") || h.name || "",
+              lat: h.point?.lat ?? null,
+              lon: h.point?.lng ?? null,
+            };
+          });
+          return res.json(results);
+        }
+      } catch (e) {
+        console.error("GraphHopper geocode error:", e);
+      }
+    }
+
+    // Fallback: Mock address list based on query
     const mockAddresses = [
       { display_name: "123 Lathrop Way, Lathrop, CA 95330" },
       { display_name: "456 Bay Area Blvd, San Francisco, CA 94105" },

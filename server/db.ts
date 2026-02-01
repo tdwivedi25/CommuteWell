@@ -4,11 +4,26 @@ import * as schema from "@shared/schema";
 
 const { Pool } = pg;
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
-}
+// Export mutable bindings and assign below so exports remain at top-level.
+export let pool: any;
+export let db: any;
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle(pool, { schema });
+if (!process.env.DATABASE_URL) {
+  // eslint-disable-next-line no-console
+  console.warn("DATABASE_URL not set — falling back to in-memory storage.");
+
+  pool = undefined;
+  db = {
+    select: () => ({
+      from: () => ({
+        limit: async () => {
+          throw new Error("No database configured");
+        },
+      }),
+    }),
+  };
+
+} else {
+  pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  db = drizzle(pool, { schema });
+}

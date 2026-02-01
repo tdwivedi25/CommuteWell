@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCreateRoute, useRoutes, useUpdateRoute } from "@/hooks/use-commute";
-import { Loader2, Car, Train, Users, ArrowRight } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
-import { cn } from "@/lib/utils";
 
 export default function RouteSetup() {
   const [_, setLocation] = useLocation();
@@ -18,8 +17,56 @@ export default function RouteSetup() {
     destination: existingRoute?.destination || "",
     departureStart: existingRoute?.departureStart || "17:00",
     departureEnd: existingRoute?.departureEnd || "19:00",
-    transportModes: existingRoute?.transportModes || ["drive"],
   });
+
+  const [originSuggestions, setOriginSuggestions] = useState<string[]>([]);
+  const [destSuggestions, setDestSuggestions] = useState<string[]>([]);
+  const originTimer = useRef<number | null>(null);
+  const destTimer = useRef<number | null>(null);
+
+  const searchAddresses = async (query: string) => {
+    if (!query) return [];
+    try {
+      const res = await fetch(`/api/address/search?q=${encodeURIComponent(query)}`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.map((d: any) => d.display_name as string);
+    } catch (e) {
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    if (originTimer.current) window.clearTimeout(originTimer.current);
+    if (!formData.origin) {
+      setOriginSuggestions([]);
+    } else {
+      originTimer.current = window.setTimeout(async () => {
+        const results = await searchAddresses(formData.origin);
+        setOriginSuggestions(results);
+      }, 300);
+    }
+    return () => {
+      if (originTimer.current) window.clearTimeout(originTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.origin]);
+
+  useEffect(() => {
+    if (destTimer.current) window.clearTimeout(destTimer.current);
+    if (!formData.destination) {
+      setDestSuggestions([]);
+    } else {
+      destTimer.current = window.setTimeout(async () => {
+        const results = await searchAddresses(formData.destination);
+        setDestSuggestions(results);
+      }, 300);
+    }
+    return () => {
+      if (destTimer.current) window.clearTimeout(destTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.destination]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,14 +87,7 @@ export default function RouteSetup() {
     }
   };
 
-  const toggleMode = (mode: string) => {
-    setFormData(prev => ({
-      ...prev,
-      transportModes: prev.transportModes.includes(mode)
-        ? prev.transportModes.filter(m => m !== mode)
-        : [...prev.transportModes, mode]
-    }));
-  };
+  
 
   return (
     <div className="min-h-screen bg-background pb-32 p-6">
@@ -71,7 +111,25 @@ export default function RouteSetup() {
                 placeholder="e.g. Lathrop"
                 value={formData.origin}
                 onChange={e => setFormData({ ...formData, origin: e.target.value })}
+                autoComplete="off"
               />
+              {originSuggestions.length > 0 && (
+                <div className="absolute left-0 right-0 mt-2 bg-card border border-border rounded-xl overflow-hidden z-20">
+                  {originSuggestions.map((s, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, origin: s }));
+                        setOriginSuggestions([]);
+                      }}
+                      className="w-full text-left px-4 py-3 hover:bg-primary/5"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             
             <div className="flex justify-center -my-2 relative z-10">
@@ -88,7 +146,25 @@ export default function RouteSetup() {
                 placeholder="e.g. San Francisco"
                 value={formData.destination}
                 onChange={e => setFormData({ ...formData, destination: e.target.value })}
+                autoComplete="off"
               />
+              {destSuggestions.length > 0 && (
+                <div className="absolute left-0 right-0 mt-2 bg-card border border-border rounded-xl overflow-hidden z-20">
+                  {destSuggestions.map((s, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, destination: s }));
+                        setDestSuggestions([]);
+                      }}
+                      className="w-full text-left px-4 py-3 hover:bg-primary/5"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -120,35 +196,7 @@ export default function RouteSetup() {
           </div>
         </div>
 
-        {/* Modes */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">Transport Modes</h2>
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { id: "drive", label: "Drive", icon: Car },
-              { id: "transit", label: "Transit", icon: Train },
-              { id: "carpool", label: "Carpool", icon: Users },
-            ].map(({ id, label, icon: Icon }) => {
-              const isActive = formData.transportModes.includes(id);
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => toggleMode(id)}
-                  className={cn(
-                    "flex flex-col items-center justify-center gap-2 p-4 rounded-xl border transition-all duration-200",
-                    isActive
-                      ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20"
-                      : "bg-card border-border text-muted-foreground hover:bg-white/5"
-                  )}
-                >
-                  <Icon className="w-6 h-6" />
-                  <span className="text-xs font-bold">{label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        {/* Transport modes removed per request */}
 
         <button
           type="submit"

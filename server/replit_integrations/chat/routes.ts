@@ -2,10 +2,31 @@ import type { Express, Request, Response } from "express";
 import OpenAI from "openai";
 import { chatStorage } from "./storage";
 
-const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-});
+const _chatApiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+let openai: any;
+if (_chatApiKey) {
+  openai = new OpenAI({ apiKey: _chatApiKey, baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL });
+} else {
+  // Lightweight mock stream generator used when no API key is configured
+  const makeMockStream = (text: string) => {
+    return (async function* () {
+      for (const chunk of (text.match(/.{1,20}/g) || [text])) {
+        yield { choices: [{ delta: { content: chunk } }] };
+      }
+    })();
+  };
+
+  openai = {
+    chat: {
+      completions: {
+        create: async (opts: any) => {
+          if (opts && opts.stream) return makeMockStream("AI key not configured");
+          return { choices: [{ message: { content: "AI key not configured" } }] };
+        },
+      },
+    },
+  };
+}
 
 export function registerChatRoutes(app: Express): void {
   // Get all conversations

@@ -2,10 +2,15 @@ import fs from "node:fs";
 import OpenAI, { toFile } from "openai";
 import { Buffer } from "node:buffer";
 
-export const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-});
+const _imageApiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+export const openai = _imageApiKey
+  ? new OpenAI({ apiKey: _imageApiKey, baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL })
+  : {
+      images: {
+        generate: async () => ({ data: [{ b64_json: null }] }),
+        edit: async () => ({ data: [{ b64_json: null }] }),
+      },
+    } as any;
 
 /**
  * Generate an image and return as Buffer.

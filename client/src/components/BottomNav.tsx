@@ -1,41 +1,60 @@
-import { Link, useLocation } from "wouter";
-import { Home, Map, Settings, Zap } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+
+const TABS = [
+  { id: "today", label: "Today", emoji: "📋" },
+  { id: "checkin", label: "Check-in", emoji: "💭" },
+  { id: "progress", label: "Progress", emoji: "📊" },
+];
 
 export function BottomNav() {
-  const [location] = useLocation();
+  const [active, setActive] = useState<string>(() => {
+    try {
+      const h = window.location.hash.replace("#", "");
+      return h || "today";
+    } catch (e) {
+      return "today";
+    }
+  });
 
-  const navItems = [
-    { href: "/", icon: Home, label: "Home" },
-    { href: "/prediction", icon: Zap, label: "Forecast" },
-    { href: "/alternates", icon: Map, label: "Options" },
-    { href: "/setup", icon: Settings, label: "Setup" },
-  ];
+  useEffect(() => {
+    function onHash() {
+      const h = window.location.hash.replace("#", "");
+      setActive(h || "today");
+    }
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  function go(id: string) {
+    if (window.location.hash !== `#${id}`) window.location.hash = `#${id}`;
+    else setActive(id);
+  }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 pb-6 bg-background/80 backdrop-blur-lg border-t border-white/5">
+    <div className="fixed bottom-0 left-0 right-0 z-50 p-3 pb-6 bg-background/90 backdrop-blur-lg border-t border-white/5">
       <nav className="flex items-center justify-around max-w-md mx-auto">
-        {navItems.map(({ href, icon: Icon, label }) => {
-          const isActive = location === href;
+        {TABS.map((t) => {
+          const isActive = active === t.id;
           return (
-            <Link key={href} href={href} className="group flex flex-col items-center gap-1 min-w-[64px]">
+            <button
+              key={t.id}
+              onClick={() => go(t.id)}
+              aria-current={isActive}
+              className={`group flex flex-col items-center gap-1 min-w-[72px] md:min-w-[84px] focus:outline-none`}
+            >
               <div
-                className={cn(
-                  "p-2.5 rounded-2xl transition-all duration-300",
-                  isActive 
-                    ? "bg-primary text-primary-foreground shadow-[0_0_15px_rgba(255,255,255,0.2)]" 
-                    : "text-muted-foreground group-hover:text-foreground group-hover:bg-white/5"
-                )}
+                className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center text-xl transition-all duration-200 ${
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-[0_6px_20px_rgba(59,130,246,0.18)]"
+                    : "text-muted-foreground hover:bg-white/5"
+                }`}
               >
-                <Icon className={cn("w-6 h-6", isActive && "fill-current")} />
+                <span className="leading-none">{t.emoji}</span>
               </div>
-              <span className={cn(
-                "text-[10px] font-medium transition-colors",
-                isActive ? "text-foreground" : "text-muted-foreground"
-              )}>
-                {label}
+              <span className={`text-[11px] font-medium transition-colors ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
+                {t.label}
               </span>
-            </Link>
+            </button>
           );
         })}
       </nav>
