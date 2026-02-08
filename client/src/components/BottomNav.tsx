@@ -4,6 +4,7 @@ const TABS = [
   { id: "today", label: "Today", emoji: "📋" },
   { id: "checkin", label: "Check-in", emoji: "💭" },
   { id: "progress", label: "Progress", emoji: "📊" },
+  { id: "setup", label: "Setup", emoji: "⚙️" },
 ];
 
 export function BottomNav() {

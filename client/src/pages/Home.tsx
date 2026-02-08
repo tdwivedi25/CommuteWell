@@ -37,11 +37,9 @@ export default function Home() {
         </div>
         <h2 className="text-2xl font-display font-bold mb-2">Welcome to Commute Cue</h2>
         <p className="text-muted-foreground mb-8 max-w-xs">
-          Set up your first route to start tracking traffic and get departure alerts.
+          Set up your first commute to start tracking traffic and get departure alerts.
         </p>
-        <Link href="/setup" className="bg-primary text-primary-foreground px-8 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity">
-          Set Up Route
-        </Link>
+
       </div>
     );
   }

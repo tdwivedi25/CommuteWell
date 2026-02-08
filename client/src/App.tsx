@@ -8,14 +8,14 @@ import { BottomNav } from "@/components/BottomNav";
 import WellnessPlan from "@/pages/WellnessPlan";
 import Home from "@/pages/Home";
 import Prediction from "@/pages/Prediction";
-// RouteSetup replaced by Progress per user request
+import CommuteSetup from "@/pages/CommuteSetup";
 import Alternates from "@/pages/Alternates";
 import Progress from "@/pages/Progress";
 import NotFound from "@/pages/not-found";
 import { useEffect, useState } from "react";
 
 function Router() {
-  const VALID = ["today", "checkin", "progress"];
+  const VALID = ["today", "checkin", "progress", "setup"];
   const [tab, setTab] = useState<string>(() => {
     try {
       const h = window.location.hash.replace("#", "");
@@ -48,6 +48,9 @@ function Router() {
       </div>
       <div className={`absolute inset-0 transition-opacity duration-300 ${tab === "progress" ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
         <Progress />
+      </div>
+      <div className={`absolute inset-0 transition-opacity duration-300 ${tab === "setup" ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
+        <CommuteSetup />
       </div>
     </div>
   );

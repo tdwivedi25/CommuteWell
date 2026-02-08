@@ -4,10 +4,55 @@ import { format } from "date-fns";
 
 type Task = { id: string; name: string; completed: boolean };
 
+type CommuteEntry = {
+  date: string;
+  timestamp: string;
+  fromCity: string;
+  toCity: string;
+  commuteHours: number;
+  commuteMinutes: number;
+  daysPerWeek: number;
+  notes: string;
+};
+
+const ENTRIES_KEY = "commutewell-entries";
+
+function loadEntries(): CommuteEntry[] {
+  try {
+    const raw = window.localStorage.getItem(ENTRIES_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as CommuteEntry[];
+  } catch {
+    return [];
+  }
+}
+
 export default function WellnessPlan() {
   const today = new Date();
   const displayDate = format(today, "EEEE, MMMM d");
   const isoDate = format(today, "yyyy-MM-dd");
+
+  const [entries, setEntries] = useState<CommuteEntry[]>(loadEntries());
+
+  const todayEntry = useMemo(() => {
+    return entries.find((e) => e.date === isoDate);
+  }, [entries, isoDate]);
+
+  useEffect(() => {
+    setEntries(loadEntries());
+  }, []);
+
+  useEffect(() => {
+    function onStorageChange() {
+      setEntries(loadEntries());
+    }
+    window.addEventListener("storage", onStorageChange);
+    window.addEventListener("commuteLogged", onStorageChange);
+    return () => {
+      window.removeEventListener("storage", onStorageChange);
+      window.removeEventListener("commuteLogged", onStorageChange);
+    };
+  }, []);
 
   const [tasks, setTasks] = useState({
     morning: [
@@ -160,7 +205,9 @@ export default function WellnessPlan() {
             </div>
             <div className="mt-1 text-sm font-medium text-gray-600">{displayDate}</div>
             <div className="mt-4 mb-6 inline-block bg-white/50 backdrop-blur px-4 py-2 rounded-full text-base text-gray-700">
-              Your 2hr 15min commute today
+              {todayEntry
+                ? `Your ${todayEntry.commuteHours}h ${todayEntry.commuteMinutes}m commute for today`
+                : "Set up your commute in the Setup tab"}
             </div>
           </header>
 

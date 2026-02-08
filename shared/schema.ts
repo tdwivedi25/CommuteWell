@@ -21,6 +21,9 @@ export const commuteRoutes = pgTable("commute_routes", {
   departureStart: text("departure_start").notNull(), // "17:30"
   departureEnd: text("departure_end").notNull(),   // "19:30"
   transportModes: text("transport_modes").array().notNull(), // ["drive", "bart"]
+  commuteHours: integer("commute_hours").default(0), // hours part of one-way commute time
+  commuteMinutes: integer("commute_minutes").default(0), // minutes part of one-way commute time
+  daysPerWeek: integer("days_per_week").default(5), // days per week commuting
   isActive: boolean("is_active").default(true),
 });
 
