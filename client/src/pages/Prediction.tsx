@@ -40,7 +40,6 @@ function saveCheckins(all: Checkin[]) {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
   } catch (e) {
-    // eslint-disable-next-line no-console
     console.warn("Failed to save checkins", e);
   }
 }
@@ -110,13 +109,22 @@ export default function Prediction(): JSX.Element {
       all.push(payload);
     }
     saveCheckins(all);
+
+    // ✨ Trigger re-sync to Raspberry Pi
+    window.dispatchEvent(new Event('wellness-data-updated'));
+
     setLoading(false);
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 2000);
   }, [valid, ratings, note, averageRating, dateKey]);
 
   return (
-    <motion.main initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="min-h-screen bg-gradient-to-b from-blue-50 to-teal-50 px-6 py-8 pb-safe">
+    <motion.main
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="min-h-screen bg-gradient-to-b from-blue-50 to-teal-50 px-6 py-8 pb-safe"
+    >
       <div className="max-w-md mx-auto">
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">How are you feeling?</h1>

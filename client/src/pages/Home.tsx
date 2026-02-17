@@ -1,133 +1,268 @@
-import { useEffect } from "react";
-import { useRoutes, usePrediction, useSyncDevice } from "@/hooks/use-commute";
-import { TrafficIndicator } from "@/components/TrafficIndicator";
-import { DigitalClock } from "@/components/DigitalClock";
-import { Loader2, AlertCircle, ArrowRight } from "lucide-react";
-import { Link } from "wouter";
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
-export default function Home() {
-  const { data: routes, isLoading: loadingRoutes } = useRoutes();
-  // For MVP, just grab the first route. In real app, user selects active route.
-  const activeRoute = routes?.[0];
-  
-  const { data: prediction, isLoading: loadingPrediction } = usePrediction(activeRoute?.id ?? null);
-  const { mutate: syncDevice } = useSyncDevice();
+export default function HomeScreen() {
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (prediction?.currentStatus.status) {
-      // Sync the physical device whenever we get new status
-      syncDevice(prediction.currentStatus.status as any);
-    }
-  }, [prediction?.currentStatus.status, syncDevice]);
+    // Trigger fade-in on mount
+    setTimeout(() => setVisible(true), 100);
+  }, []);
 
-  if (loadingRoutes || (activeRoute && loadingPrediction)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-10 h-10 text-primary animate-spin" />
-      </div>
-    );
-  }
-
-  if (!activeRoute) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-background">
-        <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6 text-primary">
-          <MapIcon className="w-10 h-10" />
-        </div>
-        <h2 className="text-2xl font-display font-bold mb-2">Welcome to Commute Cue</h2>
-        <p className="text-muted-foreground mb-8 max-w-xs">
-          Set up your first commute to start tracking traffic and get departure alerts.
-        </p>
-
-      </div>
-    );
-  }
-
-  const status = (prediction?.currentStatus.status as "green" | "yellow" | "red") || "green";
-  const statusMessages = {
-    green: "Good to leave",
-    yellow: "Traffic building",
-    red: "Better wait"
+  const handleGetStarted = () => {
+    window.location.hash = "#setup";
   };
 
   return (
-    <div className="min-h-screen bg-background pb-32">
-      {/* Header */}
-      <header className="pt-12 pb-6 px-6 text-center">
-        <DigitalClock />
-      </header>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(160deg, #6b8f6e 0%, #8fa888 35%, #a8c5ab 60%, #c8e3f0 100%)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "2rem",
+        fontFamily: "'Georgia', 'Times New Roman', serif",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Background decorative circles */}
+      <div style={{
+        position: "absolute",
+        top: "-80px",
+        right: "-80px",
+        width: "300px",
+        height: "300px",
+        borderRadius: "50%",
+        background: "rgba(255,255,255,0.08)",
+        pointerEvents: "none",
+      }} />
+      <div style={{
+        position: "absolute",
+        bottom: "-60px",
+        left: "-60px",
+        width: "250px",
+        height: "250px",
+        borderRadius: "50%",
+        background: "rgba(255,255,255,0.06)",
+        pointerEvents: "none",
+      }} />
+      <div style={{
+        position: "absolute",
+        top: "40%",
+        left: "-40px",
+        width: "180px",
+        height: "180px",
+        borderRadius: "50%",
+        background: "rgba(200,227,240,0.15)",
+        pointerEvents: "none",
+      }} />
 
-      {/* Main Content */}
-      <main className="px-6 space-y-8">
-        {/* Route Info */}
-        <div className="text-center space-y-1">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm font-medium text-muted-foreground">
-            <span>{activeRoute.origin}</span>
-            <ArrowRight className="w-3 h-3" />
-            <span>{activeRoute.destination}</span>
+      {/* Main content card */}
+      <div
+        style={{
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(30px)",
+          transition: "opacity 0.8s ease, transform 0.8s ease",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          textAlign: "center",
+          maxWidth: "420px",
+          width: "100%",
+          zIndex: 1,
+        }}
+      >
+        {/* Logo compass ring */}
+        <div style={{
+          width: "110px",
+          height: "110px",
+          borderRadius: "50%",
+          background: "rgba(255,255,255,0.25)",
+          backdropFilter: "blur(8px)",
+          border: "2px solid rgba(255,255,255,0.4)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          marginBottom: "2rem",
+          boxShadow: "0 8px 32px rgba(44,62,50,0.18)",
+        }}>
+          {/* Inner circle */}
+          <div style={{
+            width: "76px",
+            height: "76px",
+            borderRadius: "50%",
+            background: "linear-gradient(135deg, #c8e3f0 0%, #a8d4e8 100%)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "2.2rem",
+            boxShadow: "inset 0 2px 8px rgba(0,0,0,0.1)",
+          }}>
+            🧘
           </div>
         </div>
 
-        {/* Traffic Light */}
-        <div className="py-8 flex flex-col items-center justify-center relative">
-          <TrafficIndicator status={status} />
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            key={status}
-            className="mt-8 text-center"
-          >
-            <h2 className="text-3xl font-display font-bold tracking-tight">
-              {statusMessages[status]}
-            </h2>
-            <p className="text-muted-foreground mt-2">
-              Best time: <span className="text-foreground font-semibold">{prediction?.bestDepartureTime || "--:--"}</span>
-            </p>
-          </motion.div>
+        {/* App name */}
+        <h1 style={{
+          fontSize: "2.8rem",
+          fontWeight: "800",
+          color: "#1e3320",
+          letterSpacing: "-0.5px",
+          marginBottom: "0.4rem",
+          lineHeight: 1.1,
+          textShadow: "0 2px 8px rgba(255,255,255,0.3)",
+          fontFamily: "'Georgia', serif",
+        }}>
+          CommuteWell
+        </h1>
+
+        {/* Tagline */}
+        <p style={{
+          fontSize: "1.05rem",
+          color: "#2c3e2c",
+          fontStyle: "italic",
+          letterSpacing: "0.5px",
+          marginBottom: "2.5rem",
+          fontFamily: "'Georgia', serif",
+          opacity: 0.85,
+        }}>
+          Your Health, Every Mile.
+        </p>
+
+        {/* Divider */}
+        <div style={{
+          width: "60px",
+          height: "2px",
+          background: "rgba(30,51,32,0.3)",
+          borderRadius: "2px",
+          marginBottom: "2.5rem",
+        }} />
+
+        {/* Welcome message */}
+        <div style={{
+          background: "rgba(255,255,255,0.22)",
+          backdropFilter: "blur(12px)",
+          border: "1px solid rgba(255,255,255,0.35)",
+          borderRadius: "20px",
+          padding: "1.8rem 2rem",
+          marginBottom: "2.5rem",
+          boxShadow: "0 4px 24px rgba(44,62,50,0.12)",
+        }}>
+          <h2 style={{
+            fontSize: "1.5rem",
+            fontWeight: "700",
+            color: "#1e3320",
+            marginBottom: "0.75rem",
+            fontFamily: "'Georgia', serif",
+          }}>
+            Welcome to CommuteWell
+          </h2>
+          <p style={{
+            fontSize: "0.95rem",
+            color: "#2c3e2c",
+            lineHeight: 1.7,
+            fontFamily: "'Georgia', serif",
+            opacity: 0.85,
+          }}>
+            Your personal health assistant designed for Central Valley to Bay Area super-commuters.
+            Track wellness, build habits, and feel better — one commute at a time.
+          </p>
         </div>
 
-        {/* Action Cards */}
-        <div className="grid grid-cols-1 gap-4">
-          {prediction?.currentStatus.recommendation && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="glass-panel p-5 rounded-2xl flex items-start gap-4"
+        {/* Feature pills */}
+        <div style={{
+          display: "flex",
+          gap: "0.6rem",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          marginBottom: "2.5rem",
+        }}>
+          {[
+            { icon: "✅", text: "Daily Tasks" },
+            { icon: "💙", text: "Check-ins" },
+            { icon: "📊", text: "Progress" },
+            { icon: "🖥️", text: "Home Display" },
+          ].map((pill) => (
+            <div
+              key={pill.text}
+              style={{
+                background: "rgba(255,255,255,0.28)",
+                border: "1px solid rgba(255,255,255,0.4)",
+                borderRadius: "999px",
+                padding: "0.4rem 1rem",
+                fontSize: "0.82rem",
+                fontWeight: "600",
+                color: "#1e3320",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.35rem",
+                backdropFilter: "blur(6px)",
+              }}
             >
-              <AlertCircle className="w-6 h-6 text-primary shrink-0 mt-0.5" />
-              <div>
-                <h3 className="font-bold text-lg mb-1">Recommendation</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {prediction.currentStatus.explanation || "Traffic is flowing smoothly. It's a great time to hit the road."}
-                </p>
-              </div>
-            </motion.div>
-          )}
+              <span>{pill.icon}</span>
+              <span>{pill.text}</span>
+            </div>
+          ))}
         </div>
-      </main>
-    </div>
-  );
-}
 
-function MapIcon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
-      <line x1="9" x2="9" y1="3" y2="18" />
-      <line x1="15" x2="15" y1="6" y2="21" />
-    </svg>
+        {/* Get Started button */}
+        <button
+          onClick={handleGetStarted}
+          style={{
+            width: "100%",
+            maxWidth: "320px",
+            padding: "1.1rem 2rem",
+            borderRadius: "16px",
+            border: "none",
+            background: "#1e3320",
+            color: "white",
+            fontSize: "1.1rem",
+            fontWeight: "700",
+            fontFamily: "'Georgia', serif",
+            letterSpacing: "0.5px",
+            cursor: "pointer",
+            boxShadow: "0 6px 24px rgba(30,51,32,0.35)",
+            transition: "transform 0.15s ease, box-shadow 0.15s ease",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "0.6rem",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.03)";
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 8px 32px rgba(30,51,32,0.45)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 6px 24px rgba(30,51,32,0.35)";
+          }}
+          onMouseDown={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.97)";
+          }}
+          onMouseUp={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.03)";
+          }}
+        >
+          Get Started
+          <span style={{ fontSize: "1.2rem" }}>→</span>
+        </button>
+
+        {/* Privacy note */}
+        <p style={{
+          marginTop: "1.25rem",
+          fontSize: "0.75rem",
+          color: "#2c3e2c",
+          opacity: 0.65,
+          fontFamily: "'Georgia', serif",
+          display: "flex",
+          alignItems: "center",
+          gap: "0.3rem",
+        }}>
+          🔒 Your data stays on your device. No cloud required.
+        </p>
+      </div>
+    </div>
   );
 }
