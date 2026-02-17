@@ -26,7 +26,7 @@ import {
 } from "@/lib/wellnessCalculations";
 
 function Router() {
-  const VALID = ["home", "today", "checkin", "progress", "setup"];
+  const VALID = ["home", "today", "checkin", "progress", "setup", "transit"];
   const [tab, setTab] = useState<string>(() => {
     try {
       const h = window.location.hash.replace("#", "");
@@ -93,6 +93,9 @@ function Router() {
       </div>
       <div className={`absolute inset-0 transition-opacity duration-300 ${tab === "setup" ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
         <CommuteSetup />
+      </div>
+      <div className={`absolute inset-0 transition-opacity duration-300 ${tab === "transit" ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
+        <Alternates />
       </div>
     </div>
   );
