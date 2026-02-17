@@ -4,7 +4,8 @@ export default function HomeScreen() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Trigger fade-in on mount
+    // ✅ ALWAYS force home screen on refresh/mount
+    window.location.hash = "#home";
     setTimeout(() => setVisible(true), 100);
   }, []);
 
@@ -171,57 +172,84 @@ export default function HomeScreen() {
           </p>
         </div>
 
-        {/* Feature pills */}
-        <div style={{
-          display: "flex",
-          gap: "0.6rem",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          marginBottom: "2.5rem",
-        }}>
-          {[
-            { icon: "✅", text: "Daily Tasks" },
-            { icon: "💙", text: "Check-ins" },
-            { icon: "📊", text: "Progress" },
-            { icon: "🖥️", text: "Home Display" },
-          ].map((pill) => (
-            <div
-              key={pill.text}
+        {/* ✅ CLICKABLE FEATURE BUTTONS (2x2 grid) */}
+        {[
+          { icon: "✅", text: "Daily Tasks", description: "Morning, drive & evening checklists", hash: "#today" },
+          { icon: "💙", text: "Check-ins", description: "Track energy, stress & comfort daily", hash: "#checkin" },
+          { icon: "📊", text: "Progress", description: "View trends, streaks & wellness score", hash: "#progress" },
+          { icon: "🖥️", text: "Home Display", description: "Raspberry Pi dashboard syncs your score", hash: "#setup" },
+        ].reduce((rows: JSX.Element[][], item, i) => {
+          if (i % 2 === 0) rows.push([]);
+          rows[rows.length - 1].push(
+            <button
+              key={item.text}
+              onClick={() => { window.location.hash = item.hash; }}
               style={{
+                flex: 1,
                 background: "rgba(255,255,255,0.28)",
-                border: "1px solid rgba(255,255,255,0.4)",
-                borderRadius: "999px",
-                padding: "0.4rem 1rem",
-                fontSize: "0.82rem",
-                fontWeight: "600",
-                color: "#1e3320",
+                backdropFilter: "blur(6px)",
+                border: "1px solid rgba(255,255,255,0.45)",
+                borderRadius: "16px",
+                padding: "0.9rem 0.75rem",
+                cursor: "pointer",
                 display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
                 gap: "0.35rem",
-                backdropFilter: "blur(6px)",
+                transition: "transform 0.15s ease, background 0.15s ease",
+                textAlign: "center",
+              }}
+              onMouseEnter={(e) => {
+                const el = e.currentTarget as HTMLButtonElement;
+                el.style.transform = "scale(1.04)";
+                el.style.background = "rgba(255,255,255,0.42)";
+              }}
+              onMouseLeave={(e) => {
+                const el = e.currentTarget as HTMLButtonElement;
+                el.style.transform = "scale(1)";
+                el.style.background = "rgba(255,255,255,0.28)";
+              }}
+              onMouseDown={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.96)";
+              }}
+              onMouseUp={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.04)";
               }}
             >
-              <span>{pill.icon}</span>
-              <span>{pill.text}</span>
-            </div>
-          ))}
-        </div>
+              <span style={{ fontSize: "1.6rem", lineHeight: 1 }}>{item.icon}</span>
+              <span style={{ fontSize: "0.85rem", fontWeight: "700", color: "#1e3320", fontFamily: "'Georgia', serif" }}>
+                {item.text}
+              </span>
+              <span style={{ fontSize: "0.7rem", color: "#2c3e2c", opacity: 0.75, fontFamily: "'Georgia', serif", lineHeight: 1.4 }}>
+                {item.description}
+              </span>
+            </button>
+          );
+          return rows;
+        }, []).map((row, i) => (
+          <div key={i} style={{ display: "flex", gap: "0.75rem", width: "100%", marginBottom: "0.75rem" }}>
+            {row}
+          </div>
+        ))}
 
-        {/* Get Started button */}
+        {/* Spacing */}
+        <div style={{ marginBottom: "1rem" }} />
+
+        {/* ✅ RENAMED BUTTON */}
         <button
           onClick={handleGetStarted}
           style={{
             width: "100%",
-            maxWidth: "320px",
+            maxWidth: "340px",
             padding: "1.1rem 2rem",
             borderRadius: "16px",
             border: "none",
             background: "#1e3320",
             color: "white",
-            fontSize: "1.1rem",
+            fontSize: "1rem",
             fontWeight: "700",
             fontFamily: "'Georgia', serif",
-            letterSpacing: "0.5px",
+            letterSpacing: "0.3px",
             cursor: "pointer",
             boxShadow: "0 6px 24px rgba(30,51,32,0.35)",
             transition: "transform 0.15s ease, box-shadow 0.15s ease",
@@ -231,12 +259,14 @@ export default function HomeScreen() {
             gap: "0.6rem",
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.03)";
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 8px 32px rgba(30,51,32,0.45)";
+            const el = e.currentTarget as HTMLButtonElement;
+            el.style.transform = "scale(1.03)";
+            el.style.boxShadow = "0 8px 32px rgba(30,51,32,0.45)";
           }}
           onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 6px 24px rgba(30,51,32,0.35)";
+            const el = e.currentTarget as HTMLButtonElement;
+            el.style.transform = "scale(1)";
+            el.style.boxShadow = "0 6px 24px rgba(30,51,32,0.35)";
           }}
           onMouseDown={(e) => {
             (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.97)";
@@ -245,8 +275,8 @@ export default function HomeScreen() {
             (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.03)";
           }}
         >
-          Get Started
-          <span style={{ fontSize: "1.2rem" }}>→</span>
+          🗺️ Set Up Your Commute Route
+          <span style={{ fontSize: "1.1rem" }}>→</span>
         </button>
 
         {/* Privacy note */}
