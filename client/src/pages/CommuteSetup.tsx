@@ -303,11 +303,11 @@ export default function CommuteSetup() {
       <AnimatePresence>
         {showSuccess && (
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 max-w-md z-50"
+            className="fixed top-8 right-8 max-w-sm z-50"
           >
             <div className="bg-green-500 text-white p-4 rounded-xl shadow-xl text-center">
               <div className="text-lg font-semibold">✅ Route saved!</div>

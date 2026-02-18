@@ -91,17 +91,25 @@ export default function HomeScreen() {
         }}>
           {/* Inner circle */}
           <div style={{
-            width: "76px",
-            height: "76px",
+            width: "100px",
+            height: "100px",
             borderRadius: "50%",
             background: "linear-gradient(135deg, #c8e3f0 0%, #a8d4e8 100%)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: "2.2rem",
-            boxShadow: "inset 0 2px 8px rgba(0,0,0,0.1)",
+            boxShadow: "inset 0  2px rgba(0,0,0,0.1)",
+            overflow: "hidden",
           }}>
-            🧘
+            <img 
+              src="/favicon.png" 
+              alt="CommuteWell Logo"
+              style={{
+              width: "100%",
+              height: "100%",
+            objectFit: "cover",
+            }}
+          />
           </div>
         </div>
 
